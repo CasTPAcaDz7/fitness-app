@@ -1,9 +1,8 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-import { getAuth, connectAuthEmulator, initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 import { getAnalytics, isSupported } from 'firebase/analytics';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Firebase 配置
 // 在生產環境中，請使用環境變數
@@ -44,30 +43,14 @@ try {
   console.error('❌ Firestore 初始化失敗:', error);
 }
 
-// 初始化 Authentication（針對 React Native 優化）
+// 初始化 Authentication（簡化版本）
 export let auth;
 try {
-  // 檢查環境是否為 React Native
-  if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
-    // React Native 環境
-    auth = initializeAuth(app, {
-      persistence: getReactNativePersistence(AsyncStorage)
-    });
-    console.log('✅ Auth (React Native) 已初始化');
-  } else {
-    // Web 環境
-    auth = getAuth(app);
-    console.log('✅ Auth (Web) 已初始化');
-  }
+  auth = getAuth(app);
+  console.log('✅ Auth 已初始化');
 } catch (error) {
   console.error('❌ Auth 初始化失敗:', error);
-  // 如果 initializeAuth 失敗，嘗試使用 getAuth
-  try {
-    auth = getAuth(app);
-    console.log('✅ Auth (fallback) 已初始化');
-  } catch (fallbackError) {
-    console.error('❌ Auth fallback 也失敗:', fallbackError);
-  }
+  auth = null;
 }
 
 // 初始化 Storage
