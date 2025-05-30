@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useFirebase';
-import { firestoreService } from '../services/firebaseService';
+import { firestoreService, checkFirebaseServices } from '../services/firebaseService';
 import EventCard from '../components/EventCard';
 
 export default function CalendarScreen() {
@@ -24,6 +24,7 @@ export default function CalendarScreen() {
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventDescription, setNewEventDescription] = useState('');
   const [selectedEventType, setSelectedEventType] = useState('workout');
+  const [firebaseAvailable, setFirebaseAvailable] = useState(true);
 
   // 中文星期標籤
   const weekDays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
@@ -42,12 +43,45 @@ export default function CalendarScreen() {
     { id: 'nutrition', name: '營養', icon: 'apple', color: '#27ae60' },
   ];
 
+  // 檢查 Firebase 服務狀態
+  useEffect(() => {
+    const services = checkFirebaseServices();
+    setFirebaseAvailable(services.firestore && services.auth);
+    
+    if (!services.firestore) {
+      console.warn('⚠️  Firestore 不可用，將使用本地模式');
+    }
+    if (!services.auth) {
+      console.warn('⚠️  Auth 不可用，將使用模擬模式');
+    }
+  }, []);
+
   // 載入事件數據
   useEffect(() => {
-    if (user) {
+    if (user && firebaseAvailable) {
       loadEvents();
+    } else if (!firebaseAvailable) {
+      // 使用模擬數據進行演示
+      setEvents([
+        {
+          id: 'demo1',
+          title: '晨間瑜伽',
+          description: '放鬆身心的瑜伽練習',
+          date: new Date(),
+          type: 'yoga',
+          userId: 'demo'
+        },
+        {
+          id: 'demo2',
+          title: '力量訓練',
+          description: '上半身肌肉訓練',
+          date: new Date(Date.now() + 86400000), // 明天
+          type: 'workout',
+          userId: 'demo'
+        }
+      ]);
     }
-  }, [user, currentDate]);
+  }, [user, currentDate, firebaseAvailable]);
 
   const loadEvents = async () => {
     try {
@@ -61,13 +95,18 @@ export default function CalendarScreen() {
       
       // 過濾當前月份的事件
       const monthEvents = eventsData.filter(event => {
-        const eventDate = event.date.toDate();
+        const eventDate = event.date.toDate ? event.date.toDate() : new Date(event.date);
         return eventDate >= startOfMonth && eventDate <= endOfMonth;
       });
       
       setEvents(monthEvents);
     } catch (error) {
       console.error('載入事件失敗:', error);
+      Alert.alert(
+        '載入失敗',
+        '無法載入日曆事件，請檢查網絡連接或稍後再試',
+        [{ text: '確定' }]
+      );
     }
   };
 
@@ -112,7 +151,7 @@ export default function CalendarScreen() {
   // 獲取日期的事件
   const getDateEvents = (date) => {
     return events.filter(event => {
-      const eventDate = event.date.toDate();
+      const eventDate = event.date.toDate ? event.date.toDate() : new Date(event.date);
       return eventDate.getDate() === date.getDate() &&
              eventDate.getMonth() === date.getMonth() &&
              eventDate.getFullYear() === date.getFullYear();
@@ -133,7 +172,15 @@ export default function CalendarScreen() {
     if (dateEvents.length > 0) {
       setModalVisible(true);
     } else {
-      setEventModalVisible(true);
+      if (firebaseAvailable && user) {
+        setEventModalVisible(true);
+      } else {
+        Alert.alert(
+          '功能不可用',
+          firebaseAvailable ? '請先登入以添加事件' : 'Firebase 服務不可用，無法添加事件',
+          [{ text: '確定' }]
+        );
+      }
     }
   };
 
@@ -141,6 +188,16 @@ export default function CalendarScreen() {
   const addEvent = async () => {
     if (!newEventTitle.trim()) {
       Alert.alert('錯誤', '請輸入事件標題');
+      return;
+    }
+
+    if (!firebaseAvailable) {
+      Alert.alert('錯誤', 'Firebase 服務不可用，無法保存事件');
+      return;
+    }
+
+    if (!user) {
+      Alert.alert('錯誤', '請先登入');
       return;
     }
 
@@ -161,12 +218,17 @@ export default function CalendarScreen() {
       Alert.alert('成功', '事件已添加');
     } catch (error) {
       console.error('添加事件失敗:', error);
-      Alert.alert('錯誤', '添加事件失敗');
+      Alert.alert('錯誤', '添加事件失敗：' + error.message);
     }
   };
 
   // 刪除事件
   const deleteEvent = async (eventId) => {
+    if (!firebaseAvailable) {
+      Alert.alert('錯誤', 'Firebase 服務不可用，無法刪除事件');
+      return;
+    }
+
     Alert.alert(
       '確認刪除',
       '確定要刪除這個事件嗎？',
@@ -182,7 +244,7 @@ export default function CalendarScreen() {
               Alert.alert('成功', '事件已刪除');
             } catch (error) {
               console.error('刪除事件失敗:', error);
-              Alert.alert('錯誤', '刪除事件失敗');
+              Alert.alert('錯誤', '刪除事件失敗：' + error.message);
             }
           }
         }
@@ -232,6 +294,14 @@ export default function CalendarScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Firebase 狀態指示器 */}
+      {!firebaseAvailable && (
+        <View style={styles.statusBar}>
+          <MaterialCommunityIcons name="cloud-off" size={16} color="#f39c12" />
+          <Text style={styles.statusText}>離線模式 - 部分功能受限</Text>
+        </View>
+      )}
+
       {/* 標題欄 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => changeMonth(-1)}>
@@ -293,24 +363,26 @@ export default function CalendarScreen() {
             <ScrollView style={styles.eventsList}>
               {selectedDate && getDateEvents(selectedDate).map((event, index) => (
                 <EventCard
-                  key={index}
+                  key={event.id || index}
                   event={event}
                   onPress={() => {}}
-                  onDelete={() => deleteEvent(event.id)}
+                  onDelete={firebaseAvailable ? () => deleteEvent(event.id) : null}
                 />
               ))}
             </ScrollView>
             
-            <TouchableOpacity 
-              style={styles.addEventButton}
-              onPress={() => {
-                setModalVisible(false);
-                setEventModalVisible(true);
-              }}
-            >
-              <MaterialCommunityIcons name="plus" size={20} color="#ffffff" />
-              <Text style={styles.addEventButtonText}>添加事件</Text>
-            </TouchableOpacity>
+            {firebaseAvailable && user && (
+              <TouchableOpacity 
+                style={styles.addEventButton}
+                onPress={() => {
+                  setModalVisible(false);
+                  setEventModalVisible(true);
+                }}
+              >
+                <MaterialCommunityIcons name="plus" size={20} color="#ffffff" />
+                <Text style={styles.addEventButtonText}>添加事件</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </Modal>
@@ -395,6 +467,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a',
+  },
+  statusBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    backgroundColor: '#2d2d2d',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f39c12',
+  },
+  statusText: {
+    color: '#f39c12',
+    fontSize: 12,
+    marginLeft: 6,
   },
   header: {
     flexDirection: 'row',
