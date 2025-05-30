@@ -340,10 +340,7 @@ export default function CalendarScreen() {
       <View style={styles.weekHeader}>
         {weekDays.map((day, index) => (
           <View key={index} style={styles.weekDayCell}>
-            <Text style={[
-              styles.weekDayText,
-              (index === 0 || index === 6) && styles.weekendText
-            ]}>
+            <Text style={styles.weekDayText}>
               {day}
             </Text>
           </View>
@@ -541,9 +538,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#cccccc',
   },
-  weekendText: {
-    color: '#ff6b6b',
-  },
   calendarContainer: {
     flex: 1,
     backgroundColor: '#000000',
@@ -552,11 +546,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     backgroundColor: '#000000',
+    borderTopWidth: 0.5,
+    borderLeftWidth: 0.5,
+    borderColor: '#333333',
   },
   dateCell: {
     width: screenWidth / 7,
     height: screenWidth / 7,
-    borderWidth: 0.5,
+    borderWidth: 0,
+    borderRightWidth: 0.5,
+    borderBottomWidth: 0.5,
     borderColor: '#333333',
     justifyContent: 'center',
     alignItems: 'center',
