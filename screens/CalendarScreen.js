@@ -288,6 +288,7 @@ export default function CalendarScreen() {
         activeOpacity={0.7}
       >
         <View style={styles.dateCellContent}>
+          {/* 主日期數字 */}
           <Text style={[
             styles.dateText,
             !currentMonth && styles.otherMonthText,
@@ -295,14 +296,27 @@ export default function CalendarScreen() {
           ]}>
             {date.getDate()}
           </Text>
+          
+          {/* 月/日 輔助信息 */}
           <Text style={[
             styles.monthDayText,
-            !currentMonth && styles.otherMonthText
+            !currentMonth && styles.otherMonthTextSecondary
           ]}>
             {formatMonthDay(date)}
           </Text>
+          
+          {/* 事件指示器 */}
           {hasEvents && (
             <View style={styles.eventIndicator} />
+          )}
+          
+          {/* 事件內容 - 根據截圖顯示 */}
+          {hasEvents && dateEvents[0] && (
+            <View style={styles.eventCard}>
+              <Text style={styles.eventText} numberOfLines={1}>
+                {dateEvents[0].title}
+              </Text>
+            </View>
           )}
         </View>
       </TouchableOpacity>
@@ -357,23 +371,6 @@ export default function CalendarScreen() {
         </View>
       </View>
 
-      {/* 月份導航 */}
-      <View style={styles.monthNavigation}>
-        <TouchableOpacity 
-          style={styles.navButton}
-          onPress={() => changeMonth(-1)}
-        >
-          <MaterialCommunityIcons name="chevron-left" size={24} color="#888888" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navButton}
-          onPress={() => changeMonth(1)}
-        >
-          <MaterialCommunityIcons name="chevron-right" size={24} color="#888888" />
-        </TouchableOpacity>
-      </View>
-
       {/* 星期標籤 */}
       <View style={styles.weekHeader}>
         {weekDays.map((day, index) => (
@@ -385,7 +382,7 @@ export default function CalendarScreen() {
         ))}
       </View>
 
-      {/* 日曆網格 */}
+      {/* 日曆網格 - 完全填滿螢幕 */}
       <View style={styles.calendarContainer}>
         {getMonthDays().map((date, index) => renderDateCell(date, index))}
       </View>
@@ -535,7 +532,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     backgroundColor: '#000000',
   },
   leftSection: {
@@ -578,20 +575,11 @@ const styles = StyleSheet.create({
     padding: 8,
     marginLeft: 8,
   },
-  monthNavigation: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  navButton: {
-    padding: 8,
-  },
   weekHeader: {
     flexDirection: 'row',
     backgroundColor: '#000000',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 0,
   },
   weekDayCell: {
     flex: 1,
@@ -599,7 +587,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   weekDayText: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#888888',
     fontWeight: '500',
   },
@@ -607,48 +595,70 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 4,
+    backgroundColor: '#000000',
   },
   dateCell: {
-    width: (screenWidth - 8) / 7,
-    height: (screenWidth - 8) / 7 * 0.8,
-    justifyContent: 'center',
+    width: screenWidth / 7,
+    height: screenWidth / 7,
+    backgroundColor: '#000000',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingTop: 8,
+    paddingBottom: 4,
+    borderWidth: 0.5,
+    borderColor: '#222222',
   },
   dateCellContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
     width: '100%',
     height: '100%',
+    alignItems: 'center',
+    position: 'relative',
   },
   dateText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#ffffff',
     fontWeight: '500',
     textAlign: 'center',
+    marginBottom: 2,
   },
   monthDayText: {
     fontSize: 10,
     color: '#666666',
-    marginTop: 2,
     textAlign: 'center',
+    marginBottom: 4,
   },
   otherMonthText: {
     color: '#333333',
+  },
+  otherMonthTextSecondary: {
+    color: '#222222',
   },
   highlightText: {
     color: '#ff4444',
   },
   eventIndicator: {
     position: 'absolute',
-    bottom: 2,
-    right: 6,
+    top: 2,
+    right: 4,
     width: 4,
     height: 4,
     borderRadius: 2,
     backgroundColor: '#4A90E2',
+  },
+  eventCard: {
+    position: 'absolute',
+    bottom: 4,
+    left: 2,
+    right: 2,
+    backgroundColor: '#333333',
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  eventText: {
+    fontSize: 8,
+    color: '#ffffff',
+    textAlign: 'center',
   },
   modalOverlay: {
     flex: 1,
