@@ -12,9 +12,22 @@ import SettingsScreen from '../screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 
+// 暗色主題配色
+const theme = {
+  dark: true,
+  colors: {
+    primary: '#4A90E2',
+    background: '#1a1a1a',
+    card: '#2d2d2d',
+    text: '#ffffff',
+    border: '#404040',
+    notification: '#4A90E2',
+  },
+};
+
 export default function AppNavigator() {
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={theme}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
@@ -34,14 +47,38 @@ export default function AppNavigator() {
 
             return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
           },
-          tabBarActiveTintColor: '#007AFF',
-          tabBarInactiveTintColor: 'gray',
-          headerStyle: {
-            backgroundColor: '#007AFF',
+          tabBarActiveTintColor: '#4A90E2',
+          tabBarInactiveTintColor: '#888888',
+          tabBarStyle: {
+            backgroundColor: '#2d2d2d',
+            borderTopColor: '#404040',
+            borderTopWidth: 1,
+            elevation: 8,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+            paddingBottom: 5,
+            paddingTop: 5,
+            height: 65,
           },
-          headerTintColor: '#fff',
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: 'normal',
+            marginBottom: 3,
+          },
+          headerStyle: {
+            backgroundColor: '#2d2d2d',
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+            elevation: 8,
+          },
+          headerTintColor: '#ffffff',
           headerTitleStyle: {
             fontWeight: 'bold',
+            fontSize: 18,
           },
         })}
       >
