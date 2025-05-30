@@ -1,6 +1,6 @@
 # FitnessApp - 健身應用程式
 
-這是一個使用 React Native 和 Expo 開發的健身應用程式，採用暗色系現代簡約設計風格。
+這是一個使用 React Native 和 Expo 開發的健身應用程式，採用暗色系現代簡約設計風格，集成了 Firebase 作為後端服務。
 
 ## 項目概述
 
@@ -11,6 +11,9 @@ FitnessApp 是一個全面的健身追蹤和管理應用程式，具有以下主
 - 👥 **社群** - 健身社群互動和分享
 - 📚 **資料庫** - 運動資料庫和教學影片
 - ⚙️ **設定** - 應用程式設定和個人資料
+- 🔐 **用戶認證** - Firebase Authentication
+- 💾 **雲端存儲** - Firestore 數據庫
+- 📂 **文件上傳** - Firebase Storage
 
 ## 設計特色
 
@@ -32,15 +35,27 @@ FitnessApp 是一個全面的健身追蹤和管理應用程式，具有以下主
 - **Expo** - React Native 開發工具和平台
 - **React Navigation** - 導航和路由 (含暗色主題)
 - **MaterialCommunityIcons** - 圖標庫
+- **Firebase** - 後端即服務平台
+  - Firestore - NoSQL 雲端數據庫
+  - Authentication - 用戶認證服務
+  - Storage - 雲端文件存儲
+  - Analytics - 應用分析 (可選)
 
 ## 項目結構
 
 ```
 FitnessApp/
 ├── App.js                 # 主應用程式入口
+├── config/                # 配置文件
+│   ├── firebase.js        # Firebase 配置和初始化
+│   └── env.example.js     # 環境變數示例
+├── services/              # 服務層
+│   └── firebaseService.js # Firebase 服務封裝
+├── hooks/                 # React Hooks
+│   └── useFirebase.js     # Firebase 相關 hooks
 ├── navigation/
-│   └── AppNavigator.js    # 底部標籤導航配置 (暗色主題)
-├── screens/               # 所有螢幕組件 (暗色風格)
+│   └── AppNavigator.js    # 底部標籤導航配置
+├── screens/               # 所有螢幕組件
 │   ├── CalendarScreen.js
 │   ├── DashboardScreen.js
 │   ├── CommunityScreen.js
@@ -51,6 +66,70 @@ FitnessApp/
 └── README.md             # 項目說明文件
 ```
 
+## Firebase 設置
+
+### 1. 創建 Firebase 專案
+
+1. 前往 [Firebase Console](https://console.firebase.google.com/)
+2. 點擊 "Create a project" 創建新專案
+3. 輸入專案名稱，例如：`fitness-app`
+4. 選擇是否啟用 Google Analytics（建議啟用）
+5. 完成專案創建
+
+### 2. 設置 Firebase 服務
+
+#### 🔐 啟用 Authentication
+1. 在 Firebase Console 中選擇 "Authentication"
+2. 點擊 "Get started"
+3. 在 "Sign-in method" 標籤中啟用所需的登入方式：
+   - Email/Password（必選）
+   - Google（可選）
+   - 其他第三方登入（可選）
+
+#### 💾 設置 Firestore Database
+1. 在 Firebase Console 中選擇 "Firestore Database"
+2. 點擊 "Create database"
+3. 選擇模式：
+   - 生產模式（推薦，需要設置安全規則）
+   - 測試模式（30天免費，適合開發）
+4. 選擇數據庫位置（建議選擇最接近用戶的區域）
+
+#### 📂 設置 Storage
+1. 在 Firebase Console 中選擇 "Storage"
+2. 點擊 "Get started"
+3. 接受預設的安全規則（可後續修改）
+4. 選擇存儲位置
+
+### 3. 獲取 Firebase 配置
+
+1. 在 Firebase Console 中點擊 ⚙️ (設置) → "Project settings"
+2. 滾動到 "Your apps" 部分
+3. 點擊 "Add app" → 選擇 Web 圖標 `</>`
+4. 輸入應用暱稱，例如：`FitnessApp`
+5. 複製顯示的配置對象
+
+### 4. 配置應用程式
+
+1. 複製 `config/env.example.js` 為 `config/env.js`：
+   ```bash
+   cp config/env.example.js config/env.js
+   ```
+
+2. 在 `config/env.js` 中填入您的 Firebase 憑證：
+   ```javascript
+   export const FIREBASE_CONFIG = {
+     apiKey: "您的API密鑰",
+     authDomain: "您的專案ID.firebaseapp.com",
+     projectId: "您的專案ID",
+     storageBucket: "您的專案ID.appspot.com",
+     messagingSenderId: "您的發送者ID",
+     appId: "您的應用ID",
+     measurementId: "您的測量ID" // 可選
+   };
+   ```
+
+3. 更新 `config/firebase.js` 中的配置（如果使用自定義配置文件）
+
 ## 安裝和運行
 
 ### 前置要求
@@ -58,6 +137,7 @@ FitnessApp/
 - Node.js (版本 18 或以上)
 - npm 或 yarn
 - Expo CLI: `npm install -g expo-cli`
+- Firebase 專案設置完成
 
 ### 安裝步驟
 
@@ -71,12 +151,14 @@ FitnessApp/
    npm install
    ```
 
-3. 運行應用程式：
-   cd FitnessApp
+3. 設置 Firebase 憑證（見上方 Firebase 設置）
+
+4. 運行應用程式：
    ```bash
    npm start
    ```
    或
+   ```bash
    npx expo start
    ```
 
@@ -94,6 +176,10 @@ FitnessApp/
 - `react` - React 核心庫
 - `react-native` - React Native 框架
 
+### Firebase 依賴
+- `firebase` - Firebase JavaScript SDK
+- `@react-native-async-storage/async-storage` - 本地存儲（Firebase 依賴）
+
 ### 導航依賴
 - `@react-navigation/native` - React Navigation 核心
 - `@react-navigation/bottom-tabs` - 底部標籤導航
@@ -102,6 +188,81 @@ FitnessApp/
 
 ### 圖標依賴
 - `@expo/vector-icons` - Expo 圖標庫 (包含 MaterialCommunityIcons)
+
+## Firebase 使用方法
+
+### 使用 Firebase Hooks
+
+```javascript
+import { useAuth, useUserProfile, useUserWorkouts } from './hooks/useFirebase';
+
+function MyComponent() {
+  const { user, signIn, signOut } = useAuth();
+  const { profile, updateProfile } = useUserProfile(user?.uid);
+  const { workouts, addWorkout } = useUserWorkouts(user?.uid);
+
+  // 使用 Firebase 功能
+}
+```
+
+### 使用 Firebase 服務
+
+```javascript
+import { authService, firestoreService, storageService } from './services/firebaseService';
+
+// 用戶認證
+await authService.registerUser(email, password, displayName);
+await authService.loginUser(email, password);
+
+// Firestore 操作
+await firestoreService.addDocument('workouts', workoutData);
+const workouts = await firestoreService.getCollection('workouts');
+
+// Storage 操作
+const downloadURL = await storageService.uploadImage(imageUri, 'photos/profile.jpg');
+```
+
+## Firestore 數據結構
+
+```javascript
+// 用戶資料
+users: {
+  [documentId]: {
+    userId: string,
+    email: string,
+    displayName: string,
+    profileImage: string,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }
+}
+
+// 訓練記錄
+workouts: {
+  [documentId]: {
+    userId: string,
+    name: string,
+    exercises: array,
+    duration: number,
+    calories: number,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }
+}
+
+// 社群貼文
+posts: {
+  [documentId]: {
+    userId: string,
+    content: string,
+    images: array,
+    likes: number,
+    comments: array,
+    createdAt: timestamp,
+    updatedAt: timestamp
+  }
+}
+```
 
 ## UI 設計說明
 
