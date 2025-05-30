@@ -84,7 +84,7 @@ export default function CalendarScreen() {
 
   // 處理日期點擊
   const handleDatePress = (date) => {
-    console.log('日期點擊:', date);
+    console.log('日期點擊:', formatMonthDay(date));
   };
 
   // 渲染日期單元格
@@ -98,7 +98,7 @@ export default function CalendarScreen() {
         key={index}
         style={styles.dateCell}
         onPress={() => handleDatePress(date)}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         <View style={styles.dateCellContent}>
           {/* 主日期數字 */}
@@ -130,7 +130,7 @@ export default function CalendarScreen() {
       <View style={styles.header}>
         <View style={styles.leftSection}>
           <View style={styles.iconContainer}>
-            <MaterialCommunityIcons name="calendar" size={24} color="#ffffff" />
+            <MaterialCommunityIcons name="calendar" size={22} color="#ffffff" />
           </View>
           <View style={styles.titleContainer}>
             <TouchableOpacity 
@@ -140,7 +140,7 @@ export default function CalendarScreen() {
               <Text style={styles.yearMonthText}>
                 {currentDate.getFullYear()}年{months[currentDate.getMonth()]}
               </Text>
-              <MaterialCommunityIcons name="chevron-down" size={20} color="#888888" />
+              <MaterialCommunityIcons name="chevron-down" size={18} color="#888888" />
             </TouchableOpacity>
             <Text style={styles.subtitleText}>行事曆</Text>
           </View>
@@ -151,13 +151,13 @@ export default function CalendarScreen() {
             style={styles.headerButton}
             onPress={() => changeMonth(-1)}
           >
-            <MaterialCommunityIcons name="star-outline" size={24} color="#ffffff" />
+            <MaterialCommunityIcons name="star-outline" size={22} color="#ffffff" />
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.headerButton}
             onPress={() => changeMonth(1)}
           >
-            <MaterialCommunityIcons name="message-outline" size={24} color="#ffffff" />
+            <MaterialCommunityIcons name="message-outline" size={22} color="#ffffff" />
           </TouchableOpacity>
         </View>
       </View>
@@ -173,7 +173,7 @@ export default function CalendarScreen() {
         ))}
       </View>
 
-      {/* 日曆網格 - 完全填滿螢幕 */}
+      {/* 日曆網格 - 精確匹配截圖 */}
       <View style={styles.calendarGrid}>
         {getMonthDays().map((date, index) => renderDateCell(date, index))}
       </View>
@@ -191,7 +191,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
     backgroundColor: '#000000',
   },
   leftSection: {
@@ -200,13 +201,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     backgroundColor: '#2d8659',
-    borderRadius: 8,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   titleContainer: {
     flex: 1,
@@ -216,36 +217,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   yearMonthText: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#ffffff',
     fontWeight: '600',
-    marginRight: 4,
+    marginRight: 3,
   },
   subtitleText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#888888',
-    marginTop: 2,
+    marginTop: 1,
   },
   rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   headerButton: {
-    padding: 8,
-    marginLeft: 8,
+    padding: 6,
+    marginLeft: 6,
   },
   weekHeader: {
     flexDirection: 'row',
     backgroundColor: '#000000',
-    paddingVertical: 12,
+    paddingVertical: 8,
+    marginTop: 4,
   },
   weekDayCell: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
   weekDayText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#888888',
     fontWeight: '500',
   },
@@ -254,15 +256,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     backgroundColor: '#000000',
+    paddingTop: 2,
   },
   dateCell: {
     width: screenWidth / 7,
-    height: screenWidth / 7,
+    height: screenWidth / 7 * 0.85,
     backgroundColor: '#000000',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 0.5,
-    borderColor: '#222222',
+    paddingVertical: 4,
   },
   dateCellContent: {
     width: '100%',
@@ -271,22 +273,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateText: {
-    fontSize: 18,
+    fontSize: 20,
     color: '#ffffff',
-    fontWeight: '500',
+    fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   monthDayText: {
-    fontSize: 10,
+    fontSize: 9,
     color: '#666666',
     textAlign: 'center',
+    fontWeight: '400',
   },
   otherMonthText: {
-    color: '#333333',
+    color: '#444444',
   },
   otherMonthTextSecondary: {
-    color: '#222222',
+    color: '#333333',
   },
   highlightText: {
     color: '#ff4444',
