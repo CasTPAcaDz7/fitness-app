@@ -54,7 +54,7 @@ const EventCard = ({ event, onPress, onDelete }) => {
   return (
     <TouchableOpacity style={styles.eventCard} onPress={onPress}>
       <View style={styles.eventHeader}>
-        <View style={styles.eventIconContainer}>
+        <View style={[styles.eventIconContainer, { backgroundColor: getEventColor(event.type) + '20' }]}>
           <MaterialCommunityIcons 
             name={getEventIcon(event.type)} 
             size={20} 
@@ -69,7 +69,7 @@ const EventCard = ({ event, onPress, onDelete }) => {
         </View>
         {onDelete && (
           <TouchableOpacity onPress={onDelete} style={styles.deleteButton}>
-            <MaterialCommunityIcons name="delete" size={18} color="#e74c3c" />
+            <MaterialCommunityIcons name="delete" size={18} color="#ff6b6b" />
           </TouchableOpacity>
         )}
       </View>
@@ -81,7 +81,7 @@ const EventCard = ({ event, onPress, onDelete }) => {
       )}
       
       <View style={styles.eventFooter}>
-        <View style={[styles.eventTypeTag, { backgroundColor: getEventColor(event.type) + '20' }]}>
+        <View style={[styles.eventTypeTag, { backgroundColor: getEventColor(event.type) + '15' }]}>
           <Text style={[styles.eventTypeText, { color: getEventColor(event.type) }]}>
             {event.type === 'workout' ? '健身' :
              event.type === 'running' ? '跑步' :
@@ -98,12 +98,12 @@ const EventCard = ({ event, onPress, onDelete }) => {
 
 const styles = StyleSheet.create({
   eventCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#222222',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#404040',
+    borderColor: '#333333',
   },
   eventHeader: {
     flexDirection: 'row',
@@ -111,10 +111,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   eventIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#2d2d2d',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -133,21 +132,23 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     padding: 4,
+    borderRadius: 4,
+    backgroundColor: '#333333',
   },
   eventDescription: {
     fontSize: 14,
-    color: '#b0b0b0',
+    color: '#cccccc',
     lineHeight: 20,
-    marginLeft: 44,
+    marginLeft: 48,
     marginBottom: 8,
   },
   eventFooter: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginLeft: 44,
+    marginLeft: 48,
   },
   eventTypeTag: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },

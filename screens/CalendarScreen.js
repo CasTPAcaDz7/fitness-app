@@ -7,12 +7,15 @@ import {
   ScrollView, 
   Modal,
   TextInput,
-  Alert
+  Alert,
+  Dimensions
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useFirebase';
 import { firestoreService, checkFirebaseServices } from '../services/firebaseService';
 import EventCard from '../components/EventCard';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function CalendarScreen() {
   const { user } = useAuth();
@@ -165,6 +168,11 @@ export default function CalendarScreen() {
     setCurrentDate(newDate);
   };
 
+  // 回到今天
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
   // 處理日期點擊
   const handleDatePress = (date) => {
     setSelectedDate(date);
@@ -253,7 +261,7 @@ export default function CalendarScreen() {
   };
 
   // 渲染日期單元格
-  const renderDateCell = (date) => {
+  const renderDateCell = (date, index) => {
     const dateEvents = getDateEvents(date);
     const hasEvents = dateEvents.length > 0;
     const today = isToday(date);
@@ -268,26 +276,25 @@ export default function CalendarScreen() {
           !currentMonth && styles.otherMonthCell
         ]}
         onPress={() => handleDatePress(date)}
+        activeOpacity={0.7}
       >
-        <Text style={[
-          styles.dateText,
-          today && styles.todayText,
-          !currentMonth && styles.otherMonthText
-        ]}>
-          {date.getDate()}
-        </Text>
-        {hasEvents && (
-          <View style={styles.eventIndicator}>
-            <MaterialCommunityIcons 
-              name="circle" 
-              size={6} 
-              color="#4A90E2" 
-            />
-            {dateEvents.length > 1 && (
-              <Text style={styles.eventCount}>{dateEvents.length}</Text>
-            )}
-          </View>
-        )}
+        <View style={styles.dateCellContent}>
+          <Text style={[
+            styles.dateText,
+            today && styles.todayText,
+            !currentMonth && styles.otherMonthText
+          ]}>
+            {date.getDate()}
+          </Text>
+          {hasEvents && (
+            <View style={styles.eventIndicator}>
+              <View style={styles.eventDot} />
+              {dateEvents.length > 1 && (
+                <Text style={styles.eventCount}>{dateEvents.length}</Text>
+              )}
+            </View>
+          )}
+        </View>
       </TouchableOpacity>
     );
   };
@@ -304,16 +311,28 @@ export default function CalendarScreen() {
 
       {/* 標題欄 */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => changeMonth(-1)}>
-          <MaterialCommunityIcons name="chevron-left" size={32} color="#ffffff" />
+        <TouchableOpacity 
+          style={styles.navButton}
+          onPress={() => changeMonth(-1)}
+        >
+          <MaterialCommunityIcons name="chevron-left" size={28} color="#ffffff" />
         </TouchableOpacity>
         
-        <Text style={styles.monthTitle}>
-          {currentDate.getFullYear()}年 {months[currentDate.getMonth()]}
-        </Text>
+        <TouchableOpacity 
+          style={styles.monthTitleContainer}
+          onPress={goToToday}
+        >
+          <Text style={styles.monthTitle}>
+            {currentDate.getFullYear()}年{months[currentDate.getMonth()]}
+          </Text>
+          <Text style={styles.todayHint}>點擊回到今天</Text>
+        </TouchableOpacity>
         
-        <TouchableOpacity onPress={() => changeMonth(1)}>
-          <MaterialCommunityIcons name="chevron-right" size={32} color="#ffffff" />
+        <TouchableOpacity 
+          style={styles.navButton}
+          onPress={() => changeMonth(1)}
+        >
+          <MaterialCommunityIcons name="chevron-right" size={28} color="#ffffff" />
         </TouchableOpacity>
       </View>
 
@@ -321,26 +340,22 @@ export default function CalendarScreen() {
       <View style={styles.weekHeader}>
         {weekDays.map((day, index) => (
           <View key={index} style={styles.weekDayCell}>
-            <Text style={styles.weekDayText}>{day}</Text>
+            <Text style={[
+              styles.weekDayText,
+              (index === 0 || index === 6) && styles.weekendText
+            ]}>
+              {day}
+            </Text>
           </View>
         ))}
       </View>
 
       {/* 日曆網格 */}
-      <ScrollView style={styles.calendarContainer}>
+      <View style={styles.calendarContainer}>
         <View style={styles.calendarGrid}>
-          {getMonthDays().map((date) => renderDateCell(date))}
+          {getMonthDays().map((date, index) => renderDateCell(date, index))}
         </View>
-      </ScrollView>
-
-      {/* 快速回到今天按鈕 */}
-      <TouchableOpacity 
-        style={styles.todayButton}
-        onPress={() => setCurrentDate(new Date())}
-      >
-        <MaterialCommunityIcons name="calendar-today" size={24} color="#ffffff" />
-        <Text style={styles.todayButtonText}>今天</Text>
-      </TouchableOpacity>
+      </View>
 
       {/* 事件詳情模態框 */}
       <Modal
@@ -353,7 +368,7 @@ export default function CalendarScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {selectedDate?.getMonth() + 1}月{selectedDate?.getDate()}日 事件
+                {selectedDate?.getFullYear()}年{selectedDate?.getMonth() + 1}月{selectedDate?.getDate()}日
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <MaterialCommunityIcons name="close" size={24} color="#ffffff" />
@@ -466,14 +481,14 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
   },
   statusBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
-    backgroundColor: '#2d2d2d',
+    backgroundColor: '#1a1a1a',
     borderBottomWidth: 1,
     borderBottomColor: '#f39c12',
   },
@@ -487,62 +502,89 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingVertical: 16,
+    backgroundColor: '#111111',
     borderBottomWidth: 1,
-    borderBottomColor: '#404040',
+    borderBottomColor: '#333333',
+  },
+  navButton: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#222222',
+  },
+  monthTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
   },
   monthTitle: {
     fontSize: 20,
     color: '#ffffff',
     textAlign: 'center',
   },
+  todayHint: {
+    fontSize: 12,
+    color: '#888888',
+    marginTop: 2,
+  },
   weekHeader: {
     flexDirection: 'row',
-    backgroundColor: '#2d2d2d',
+    backgroundColor: '#111111',
     borderBottomWidth: 1,
-    borderBottomColor: '#404040',
+    borderBottomColor: '#333333',
+    paddingVertical: 12,
   },
   weekDayCell: {
     flex: 1,
-    paddingVertical: 12,
     alignItems: 'center',
   },
   weekDayText: {
     fontSize: 14,
-    color: '#4A90E2',
+    color: '#cccccc',
+  },
+  weekendText: {
+    color: '#ff6b6b',
   },
   calendarContainer: {
     flex: 1,
+    backgroundColor: '#000000',
   },
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
   },
   dateCell: {
-    width: '14.285%', // 1/7
-    aspectRatio: 1,
+    width: screenWidth / 7,
+    height: screenWidth / 7,
     borderWidth: 0.5,
-    borderColor: '#404040',
+    borderColor: '#333333',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000000',
+  },
+  dateCellContent: {
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
   },
   todayCell: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: '#ff3333',
   },
   otherMonthCell: {
-    backgroundColor: '#0d0d0d',
+    backgroundColor: '#0a0a0a',
   },
   dateText: {
     fontSize: 16,
     color: '#ffffff',
+    textAlign: 'center',
   },
   todayText: {
     color: '#ffffff',
   },
   otherMonthText: {
-    color: '#666666',
+    color: '#555555',
   },
   eventIndicator: {
     position: 'absolute',
@@ -551,44 +593,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  eventDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#4A90E2',
+  },
   eventCount: {
     fontSize: 10,
     color: '#4A90E2',
     marginLeft: 2,
   },
-  todayButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: '#4A90E2',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 25,
-    elevation: 5,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  todayButtonText: {
-    color: '#ffffff',
-    marginLeft: 8,
-    fontSize: 14,
-  },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#2d2d2d',
+    backgroundColor: '#1a1a1a',
     borderRadius: 16,
     padding: 20,
     width: '90%',
     maxHeight: '80%',
+    borderWidth: 1,
+    borderColor: '#333333',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -596,7 +625,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#404040',
+    borderBottomColor: '#333333',
     paddingBottom: 15,
   },
   modalTitle: {
@@ -640,23 +669,23 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 16,
     marginRight: 8,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#222222',
     borderWidth: 1,
-    borderColor: '#404040',
+    borderColor: '#333333',
   },
   eventTypeButtonText: {
     fontSize: 12,
     marginLeft: 6,
   },
   textInput: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#222222',
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
     color: '#ffffff',
     borderWidth: 1,
-    borderColor: '#404040',
+    borderColor: '#333333',
   },
   multilineInput: {
     height: 80,
