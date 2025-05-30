@@ -1,27 +1,28 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 
 export default function CommunityScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#1C2526" />
       <View style={styles.contentCard}>
-        <Text style={styles.title}>社群</Text>
-        <Text style={styles.description}>這裡將顯示健身社群和分享功能</Text>
+        <Text style={styles.title}>Community</Text>
+        <Text style={styles.description}>社群功能將在此處開發</Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#1C2526',
     padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
   contentCard: {
-    backgroundColor: '#2d2d2d',
+    backgroundColor: '#2E3A3B',
     borderRadius: 16,
     padding: 32,
     alignItems: 'center',
@@ -40,10 +41,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
     letterSpacing: 0.5,
+    fontWeight: 'bold',
   },
   description: {
     fontSize: 16,
-    color: '#b0b0b0',
+    color: '#A9A9A9',
     textAlign: 'center',
     lineHeight: 24,
     letterSpacing: 0.3,
