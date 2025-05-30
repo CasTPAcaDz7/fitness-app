@@ -105,7 +105,7 @@ export default function CalendarScreen() {
           <Text style={[
             styles.dateText,
             !currentMonth && styles.otherMonthText,
-            (today || weekend) && styles.highlightText
+            (today || (weekend && currentMonth)) && styles.highlightText
           ]}>
             {date.getDate()}
           </Text>
