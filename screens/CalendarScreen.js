@@ -8,7 +8,8 @@ import {
   Modal,
   TextInput,
   Alert,
-  Dimensions
+  Dimensions,
+  StatusBar
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useFirebase';
@@ -32,8 +33,8 @@ export default function CalendarScreen() {
   // 中文星期標籤
   const weekDays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
   const months = [
-    '一月', '二月', '三月', '四月', '五月', '六月',
-    '七月', '八月', '九月', '十月', '十一月', '十二月'
+    '1月', '2月', '3月', '4月', '5月', '6月',
+    '7月', '8月', '9月', '10月', '11月', '12月'
   ];
 
   // 事件類型選項
@@ -151,6 +152,12 @@ export default function CalendarScreen() {
     return date.getMonth() === currentDate.getMonth();
   };
 
+  // 檢查是否為週末
+  const isWeekend = (date) => {
+    const day = date.getDay();
+    return day === 0 || day === 6; // 週日或週六
+  };
+
   // 獲取日期的事件
   const getDateEvents = (date) => {
     return events.filter(event => {
@@ -260,39 +267,42 @@ export default function CalendarScreen() {
     );
   };
 
+  // 格式化月份日期顯示
+  const formatMonthDay = (date) => {
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  };
+
   // 渲染日期單元格
   const renderDateCell = (date, index) => {
     const dateEvents = getDateEvents(date);
     const hasEvents = dateEvents.length > 0;
     const today = isToday(date);
     const currentMonth = isCurrentMonth(date);
+    const weekend = isWeekend(date);
 
     return (
       <TouchableOpacity
         key={date.toISOString()}
-        style={[
-          styles.dateCell,
-          today && styles.todayCell,
-          !currentMonth && styles.otherMonthCell
-        ]}
+        style={styles.dateCell}
         onPress={() => handleDatePress(date)}
         activeOpacity={0.7}
       >
         <View style={styles.dateCellContent}>
           <Text style={[
             styles.dateText,
-            today && styles.todayText,
-            !currentMonth && styles.otherMonthText
+            !currentMonth && styles.otherMonthText,
+            (today || weekend) && styles.highlightText
           ]}>
             {date.getDate()}
           </Text>
+          <Text style={[
+            styles.monthDayText,
+            !currentMonth && styles.otherMonthText
+          ]}>
+            {formatMonthDay(date)}
+          </Text>
           {hasEvents && (
-            <View style={styles.eventIndicator}>
-              <View style={styles.eventDot} />
-              {dateEvents.length > 1 && (
-                <Text style={styles.eventCount}>{dateEvents.length}</Text>
-              )}
-            </View>
+            <View style={styles.eventIndicator} />
           )}
         </View>
       </TouchableOpacity>
@@ -301,6 +311,8 @@ export default function CalendarScreen() {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      
       {/* Firebase 狀態指示器 */}
       {!firebaseAvailable && (
         <View style={styles.statusBar}>
@@ -309,30 +321,56 @@ export default function CalendarScreen() {
         </View>
       )}
 
-      {/* 標題欄 */}
+      {/* 頂部標題欄 */}
       <View style={styles.header}>
+        <View style={styles.leftSection}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons name="calendar" size={24} color="#ffffff" />
+          </View>
+          <View style={styles.titleContainer}>
+            <TouchableOpacity 
+              style={styles.monthSelector}
+              onPress={goToToday}
+            >
+              <Text style={styles.yearMonthText}>
+                {currentDate.getFullYear()}年{months[currentDate.getMonth()]}
+              </Text>
+              <MaterialCommunityIcons name="chevron-down" size={20} color="#888888" />
+            </TouchableOpacity>
+            <Text style={styles.subtitleText}>行事曆</Text>
+          </View>
+        </View>
+        
+        <View style={styles.rightSection}>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => changeMonth(-1)}
+          >
+            <MaterialCommunityIcons name="star-outline" size={24} color="#ffffff" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => changeMonth(1)}
+          >
+            <MaterialCommunityIcons name="message-outline" size={24} color="#ffffff" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* 月份導航 */}
+      <View style={styles.monthNavigation}>
         <TouchableOpacity 
           style={styles.navButton}
           onPress={() => changeMonth(-1)}
         >
-          <MaterialCommunityIcons name="chevron-left" size={28} color="#ffffff" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.monthTitleContainer}
-          onPress={goToToday}
-        >
-          <Text style={styles.monthTitle}>
-            {currentDate.getFullYear()}年{months[currentDate.getMonth()]}
-          </Text>
-          <Text style={styles.todayHint}>點擊回到今天</Text>
+          <MaterialCommunityIcons name="chevron-left" size={24} color="#888888" />
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.navButton}
           onPress={() => changeMonth(1)}
         >
-          <MaterialCommunityIcons name="chevron-right" size={28} color="#ffffff" />
+          <MaterialCommunityIcons name="chevron-right" size={24} color="#888888" />
         </TouchableOpacity>
       </View>
 
@@ -349,9 +387,7 @@ export default function CalendarScreen() {
 
       {/* 日曆網格 */}
       <View style={styles.calendarContainer}>
-        <View style={styles.calendarGrid}>
-          {getMonthDays().map((date, index) => renderDateCell(date, index))}
-        </View>
+        {getMonthDays().map((date, index) => renderDateCell(date, index))}
       </View>
 
       {/* 事件詳情模態框 */}
@@ -498,110 +534,121 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#111111',
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#000000',
   },
-  navButton: {
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: '#222222',
-  },
-  monthTitleContainer: {
+  leftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    backgroundColor: '#2d8659',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  titleContainer: {
+    flex: 1,
+  },
+  monthSelector: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  monthTitle: {
-    fontSize: 20,
+  yearMonthText: {
+    fontSize: 18,
     color: '#ffffff',
-    textAlign: 'center',
+    fontWeight: '600',
+    marginRight: 4,
   },
-  todayHint: {
+  subtitleText: {
     fontSize: 12,
     color: '#888888',
     marginTop: 2,
   },
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  monthNavigation: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  navButton: {
+    padding: 8,
+  },
   weekHeader: {
     flexDirection: 'row',
-    backgroundColor: '#111111',
-    borderBottomWidth: 1,
-    borderBottomColor: '#333333',
-    paddingVertical: 12,
+    backgroundColor: '#000000',
+    paddingVertical: 8,
+    paddingHorizontal: 4,
   },
   weekDayCell: {
     flex: 1,
     alignItems: 'center',
+    paddingVertical: 4,
   },
   weekDayText: {
-    fontSize: 14,
-    color: '#cccccc',
+    fontSize: 12,
+    color: '#888888',
+    fontWeight: '500',
   },
   calendarContainer: {
     flex: 1,
-    backgroundColor: '#000000',
-  },
-  calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    backgroundColor: '#000000',
-    borderTopWidth: 0.5,
-    borderLeftWidth: 0.5,
-    borderColor: '#333333',
+    paddingHorizontal: 4,
   },
   dateCell: {
-    width: screenWidth / 7,
-    height: screenWidth / 7,
-    borderWidth: 0,
-    borderRightWidth: 0.5,
-    borderBottomWidth: 0.5,
-    borderColor: '#333333',
+    width: (screenWidth - 8) / 7,
+    height: (screenWidth - 8) / 7 * 0.8,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000000',
+    paddingVertical: 4,
   },
   dateCellContent: {
-    width: '100%',
-    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-  },
-  todayCell: {
-    backgroundColor: '#ff3333',
-  },
-  otherMonthCell: {
-    backgroundColor: '#0a0a0a',
+    width: '100%',
+    height: '100%',
   },
   dateText: {
     fontSize: 16,
     color: '#ffffff',
+    fontWeight: '500',
     textAlign: 'center',
   },
-  todayText: {
-    color: '#ffffff',
+  monthDayText: {
+    fontSize: 10,
+    color: '#666666',
+    marginTop: 2,
+    textAlign: 'center',
   },
   otherMonthText: {
-    color: '#555555',
+    color: '#333333',
+  },
+  highlightText: {
+    color: '#ff4444',
   },
   eventIndicator: {
     position: 'absolute',
-    bottom: 4,
-    right: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  eventDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    bottom: 2,
+    right: 6,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: '#4A90E2',
-  },
-  eventCount: {
-    fontSize: 10,
-    color: '#4A90E2',
-    marginLeft: 2,
   },
   modalOverlay: {
     flex: 1,
