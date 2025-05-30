@@ -34,7 +34,7 @@ export default function AppNavigator() {
 
             return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
           },
-          tabBarActiveTintColor: '#ff3333',
+          tabBarActiveTintColor: '#ffffff',
           tabBarInactiveTintColor: '#888888',
           tabBarStyle: {
             backgroundColor: '#000000',
@@ -47,9 +47,9 @@ export default function AppNavigator() {
             height: 70,
           },
           tabBarLabelStyle: {
-            fontSize: 12,
-            marginBottom: 4,
+            fontSize: 0,
           },
+          tabBarShowLabel: false,
           headerStyle: {
             backgroundColor: '#111111',
             shadowColor: 'transparent',
@@ -65,29 +65,28 @@ export default function AppNavigator() {
           name="Calendar" 
           component={CalendarScreen} 
           options={{ 
-            title: '日曆',
             headerShown: false 
           }}
         />
         <Tab.Screen 
-          name="Dashboard" 
-          component={DashboardScreen} 
-          options={{ title: '儀表板' }}
-        />
-        <Tab.Screen 
           name="Community" 
           component={CommunityScreen} 
-          options={{ title: '社群' }}
+          options={{}}
+        />
+        <Tab.Screen 
+          name="Dashboard" 
+          component={DashboardScreen} 
+          options={{}}
         />
         <Tab.Screen 
           name="Library" 
           component={LibraryScreen} 
-          options={{ title: '資料庫' }}
+          options={{}}
         />
         <Tab.Screen 
           name="Settings" 
           component={SettingsScreen} 
-          options={{ title: '設定' }}
+          options={{}}
         />
       </Tab.Navigator>
     </NavigationContainer>

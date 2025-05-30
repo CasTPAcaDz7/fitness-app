@@ -77,14 +77,9 @@ export default function CalendarScreen() {
     setCurrentDate(new Date());
   };
 
-  // 格式化月份日期顯示
-  const formatMonthDay = (date) => {
-    return `${date.getMonth() + 1}/${date.getDate()}`;
-  };
-
   // 處理日期點擊
   const handleDatePress = (date) => {
-    console.log('日期點擊:', formatMonthDay(date));
+    console.log('日期點擊:', date.getDate());
   };
 
   // 渲染日期單元格
@@ -109,14 +104,6 @@ export default function CalendarScreen() {
           ]}>
             {date.getDate()}
           </Text>
-          
-          {/* 月/日 輔助信息 */}
-          <Text style={[
-            styles.monthDayText,
-            !currentMonth && styles.otherMonthTextSecondary
-          ]}>
-            {formatMonthDay(date)}
-          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -129,9 +116,6 @@ export default function CalendarScreen() {
       {/* 頂部標題欄 */}
       <View style={styles.header}>
         <View style={styles.leftSection}>
-          <View style={styles.iconContainer}>
-            <MaterialCommunityIcons name="calendar" size={22} color="#ffffff" />
-          </View>
           <View style={styles.titleContainer}>
             <TouchableOpacity 
               style={styles.monthSelector}
@@ -151,13 +135,13 @@ export default function CalendarScreen() {
             style={styles.headerButton}
             onPress={() => changeMonth(-1)}
           >
-            <MaterialCommunityIcons name="star-outline" size={22} color="#ffffff" />
+            <MaterialCommunityIcons name="chevron-left" size={22} color="#ffffff" />
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.headerButton}
             onPress={() => changeMonth(1)}
           >
-            <MaterialCommunityIcons name="message-outline" size={22} color="#ffffff" />
+            <MaterialCommunityIcons name="chevron-right" size={22} color="#ffffff" />
           </TouchableOpacity>
         </View>
       </View>
@@ -199,15 +183,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-  },
-  iconContainer: {
-    width: 36,
-    height: 36,
-    backgroundColor: '#2d8659',
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
+    paddingLeft: 4,
   },
   titleContainer: {
     flex: 1,
@@ -277,19 +253,9 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 1,
-  },
-  monthDayText: {
-    fontSize: 9,
-    color: '#666666',
-    textAlign: 'center',
-    fontWeight: '400',
   },
   otherMonthText: {
     color: '#444444',
-  },
-  otherMonthTextSecondary: {
-    color: '#333333',
   },
   highlightText: {
     color: '#ff4444',
