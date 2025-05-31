@@ -112,12 +112,14 @@ export default function DashboardScreen({ navigation }) {
       <View style={styles.calendarHeader}>
         <View style={styles.weekContainer}>
           {currentWeek.map((day, index) => (
-            <View
+            <TouchableOpacity
               key={index}
               style={[
                 styles.dayContainer,
                 day.isToday && styles.todayContainer,
               ]}
+              onPress={() => navigation.navigate('Calendar')}
+              activeOpacity={0.7}
             >
               <Text style={[
                 styles.dayLabel,
@@ -131,16 +133,9 @@ export default function DashboardScreen({ navigation }) {
               ]}>
                 {day.date}
               </Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
-        <TouchableOpacity
-          style={styles.calendarButton}
-          onPress={() => navigation.navigate('Calendar')}
-        >
-          <Text style={styles.calendarButtonText}>Click to Calendar</Text>
-          <MaterialCommunityIcons name="chevron-right" size={16} color="#ffffff" />
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -280,12 +275,14 @@ const styles = StyleSheet.create({
   weekContainer: {
     flexDirection: 'row',
     flex: 1,
+    width: '100%',
   },
   dayContainer: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: 8,
     borderRadius: 8,
+    marginHorizontal: 2,
   },
   todayContainer: {
     backgroundColor: '#ffffff',
@@ -302,16 +299,6 @@ const styles = StyleSheet.create({
   },
   todayText: {
     color: '#000000',
-  },
-  calendarButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 10,
-  },
-  calendarButtonText: {
-    fontSize: 12,
-    color: '#ffffff',
-    marginRight: 5,
   },
   
   // Workout Table Styles
