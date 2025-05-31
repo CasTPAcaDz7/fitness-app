@@ -12,7 +12,6 @@ import {
   StatusBar,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { LineChart } from 'react-native-chart-kit';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -20,8 +19,6 @@ export default function DashboardScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [currentWeek, setCurrentWeek] = useState([]);
   const [todayWorkouts, setTodayWorkouts] = useState([]);
-  const [dietData, setDietData] = useState([]);
-  const [weightData, setWeightData] = useState([]);
   const [dailyComment, setDailyComment] = useState('');
 
   useEffect(() => {
@@ -61,12 +58,6 @@ export default function DashboardScreen({ navigation }) {
         { id: 4, training: 'Cable Crossover', weight: '150 kg', sets: 3, reps: 16, completed: false },
       ]);
 
-      // 飲食數據（過去7天）
-      setDietData([25, 30, 28, 35, 32, 29, 31]);
-
-      // 體重數據（過去7天）
-      setWeightData([70, 69.8, 70.2, 69.9, 70.1, 69.7, 70.0]);
-
       // 生成每日評論
       generateDailyComment();
 
@@ -99,7 +90,6 @@ export default function DashboardScreen({ navigation }) {
         )
       );
       
-      // 這裡可以添加 Firebase 保存邏輯
       console.log('Workout marked complete:', workoutId);
     } catch (error) {
       console.error('標記訓練失敗:', error);
@@ -110,11 +100,9 @@ export default function DashboardScreen({ navigation }) {
   const handleCheckIn = () => {
     Alert.alert(
       '拍照打卡',
-      '選擇拍照方式',
+      '此功能在開發版本中暫時禁用',
       [
-        { text: '取消', style: 'cancel' },
-        { text: '相機', onPress: () => console.log('打開相機') },
-        { text: '相簿', onPress: () => console.log('打開相簿') },
+        { text: '確定', style: 'default' },
       ]
     );
   };
@@ -190,76 +178,24 @@ export default function DashboardScreen({ navigation }) {
     </View>
   );
 
-  const renderCharts = () => (
+  const renderSimpleCharts = () => (
     <View style={styles.chartsContainer}>
       <View style={styles.chartCard}>
-        <Text style={styles.chartTitle}>Diet</Text>
-        <LineChart
-          data={{
-            datasets: [{
-              data: dietData,
-            }],
-          }}
-          width={screenWidth * 0.42}
-          height={100}
-          chartConfig={{
-            backgroundColor: 'transparent',
-            backgroundGradientFrom: 'transparent',
-            backgroundGradientTo: 'transparent',
-            color: (opacity = 1) => `rgba(0, 206, 209, ${opacity})`,
-            strokeWidth: 2,
-            propsForDots: {
-              r: "3",
-              strokeWidth: "1",
-              stroke: "#00CED1"
-            },
-            propsForBackgroundLines: {
-              strokeWidth: 0,
-            },
-          }}
-          bezier
-          withDots={true}
-          withInnerLines={false}
-          withOuterLines={false}
-          withVerticalLabels={false}
-          withHorizontalLabels={false}
-          style={styles.chart}
-        />
+        <Text style={styles.chartTitle}>Diet Progress</Text>
+        <View style={styles.simpleChart}>
+          <MaterialCommunityIcons name="chart-line" size={60} color="#00CED1" />
+          <Text style={styles.chartValue}>31 kcal</Text>
+          <Text style={styles.chartSubtext}>Today's intake</Text>
+        </View>
       </View>
       
       <View style={styles.chartCard}>
-        <Text style={styles.chartTitle}>Weight</Text>
-        <LineChart
-          data={{
-            datasets: [{
-              data: weightData,
-            }],
-          }}
-          width={screenWidth * 0.42}
-          height={100}
-          chartConfig={{
-            backgroundColor: 'transparent',
-            backgroundGradientFrom: 'transparent',
-            backgroundGradientTo: 'transparent',
-            color: (opacity = 1) => `rgba(0, 206, 209, ${opacity})`,
-            strokeWidth: 2,
-            propsForDots: {
-              r: "3",
-              strokeWidth: "1",
-              stroke: "#00CED1"
-            },
-            propsForBackgroundLines: {
-              strokeWidth: 0,
-            },
-          }}
-          bezier
-          withDots={true}
-          withInnerLines={false}
-          withOuterLines={false}
-          withVerticalLabels={false}
-          withHorizontalLabels={false}
-          style={styles.chart}
-        />
+        <Text style={styles.chartTitle}>Weight Progress</Text>
+        <View style={styles.simpleChart}>
+          <MaterialCommunityIcons name="scale-bathroom" size={60} color="#00CED1" />
+          <Text style={styles.chartValue}>70.0 kg</Text>
+          <Text style={styles.chartSubtext}>Current weight</Text>
+        </View>
       </View>
     </View>
   );
@@ -293,7 +229,7 @@ export default function DashboardScreen({ navigation }) {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {renderWeeklyCalendar()}
         {renderTodayWorkouts()}
-        {renderCharts()}
+        {renderSimpleCharts()}
         {renderBottomActions()}
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -419,7 +355,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   
-  // Charts Styles
+  // Simple Charts Styles
   chartsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -437,8 +373,21 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     marginBottom: 10,
   },
-  chart: {
-    borderRadius: 5,
+  simpleChart: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+  },
+  chartValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#00CED1',
+    marginTop: 10,
+  },
+  chartSubtext: {
+    fontSize: 12,
+    color: '#A9A9A9',
+    marginTop: 5,
   },
   
   // Bottom Actions Styles
