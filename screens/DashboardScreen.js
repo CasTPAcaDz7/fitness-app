@@ -108,7 +108,7 @@ export default function DashboardScreen({ navigation }) {
   };
 
   const renderWeeklyCalendar = () => (
-    <View style={styles.card}>
+    <View style={styles.weeklyCalendarCard}>
       <View style={styles.calendarHeader}>
         <View style={styles.weekContainer}>
           {currentWeek.map((day, index) => (
@@ -221,12 +221,20 @@ export default function DashboardScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#1C2526" />
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
+      >
         {renderWeeklyCalendar()}
-        {renderTodayWorkouts()}
-        {renderSimpleCharts()}
-        {renderBottomActions()}
-        <View style={{ height: 100 }} />
+        
+        <View style={styles.spacer} />
+        
+        <View style={styles.bottomContent}>
+          {renderTodayWorkouts()}
+          {renderSimpleCharts()}
+          {renderBottomActions()}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -241,6 +249,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 15,
     paddingTop: 10,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    paddingBottom: 100,
+    justifyContent: 'space-between',
   },
   loadingContainer: {
     flex: 1,
@@ -270,19 +283,25 @@ const styles = StyleSheet.create({
   calendarHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    height: '100%',
   },
   weekContainer: {
     flexDirection: 'row',
     flex: 1,
     width: '100%',
+    height: '100%',
+    alignItems: 'flex-start',
+    paddingTop: 10,
   },
   dayContainer: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderRadius: 8,
     marginHorizontal: 2,
+    height: 80,
+    justifyContent: 'flex-start',
   },
   todayContainer: {
     backgroundColor: '#ffffff',
@@ -409,5 +428,18 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     textAlign: 'center',
     fontWeight: '500',
+  },
+  bottomContent: {
+    marginVertical: 10,
+  },
+  weeklyCalendarCard: {
+    backgroundColor: '#2E3A3B',
+    borderRadius: 10,
+    padding: 15,
+    marginVertical: 10,
+    height: 120,
+  },
+  spacer: {
+    height: 10,
   },
 }); 
