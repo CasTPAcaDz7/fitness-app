@@ -182,18 +182,25 @@ export default function DietTrackingScreen({ navigation }) {
     });
   };
 
-  const renderCalorieSection = () => {
+  const onChartScroll = (event) => {
+    const slideSize = screenWidth;
+    const index = event.nativeEvent.contentOffset.x / slideSize;
+    const roundIndex = Math.round(index);
+    setCurrentChartIndex(roundIndex);
+  };
+
+  const renderCalorieChart = () => {
     const nutrition = calculateTotalNutrition();
     const remaining = dailyGoal - nutrition.calories + exerciseCalories;
     const consumed = nutrition.calories;
     const progress = Math.min(consumed / dailyGoal, 1);
     
     return (
-      <View style={styles.calorieSection}>
-        <Text style={styles.mainTitle}>卡路里</Text>
-        <Text style={styles.subtitle}>剩餘 = 目標 - 食品 + 運動</Text>
+      <View style={styles.chartContainer}>
+        <Text style={styles.chartTitle}>卡路里</Text>
+        <Text style={styles.chartSubtitle}>剩餘 = 目標 - 食品 + 運動</Text>
         
-        <View style={styles.calorieContent}>
+        <View style={styles.calorieChartContent}>
           <View style={styles.circularChart}>
             <View style={styles.progressRing}>
               <View style={[styles.progressFill, {
@@ -231,7 +238,7 @@ export default function DietTrackingScreen({ navigation }) {
     );
   };
 
-  const renderNutritionSection = () => {
+  const renderNutritionChart = () => {
     const nutrition = calculateTotalNutrition();
     
     const nutritionData = [
@@ -262,42 +269,94 @@ export default function DietTrackingScreen({ navigation }) {
     ];
 
     return (
-      <View style={styles.nutritionSection}>
-        <View style={styles.nutritionGrid}>
-          {nutritionData.map((item, index) => {
-            const progressPercentage = item.goal > 0 ? Math.min((item.current / item.goal) * 100, 100) : 0;
-            
-            return (
-              <View key={index} style={styles.nutritionItem}>
-                <Text style={[styles.nutritionName, { color: item.color }]}>
-                  {item.name}
-                </Text>
-                
-                <View style={styles.nutritionCircleContainer}>
-                  <View style={styles.nutritionCircleBackground}>
-                    {progressPercentage > 0 && (
-                      <View style={[
-                        styles.nutritionCircleProgress,
-                        {
-                          borderTopColor: item.color,
-                          transform: [{ rotate: `${(progressPercentage / 100) * 360}deg` }]
-                        }
-                      ]} />
-                    )}
+      <View style={styles.chartContainer}>
+        <View style={styles.nutritionSection}>
+          <View style={styles.nutritionGrid}>
+            {nutritionData.map((item, index) => {
+              const progressPercentage = item.goal > 0 ? Math.min((item.current / item.goal) * 100, 100) : 0;
+              
+              return (
+                <View key={index} style={styles.nutritionItem}>
+                  <Text style={[styles.nutritionName, { color: item.color }]}>
+                    {item.name}
+                  </Text>
+                  
+                  <View style={styles.nutritionCircleContainer}>
+                    <View style={styles.nutritionCircleBackground}>
+                      {progressPercentage > 0 && (
+                        <View style={[
+                          styles.nutritionCircleProgress,
+                          {
+                            borderTopColor: item.color,
+                            transform: [{ rotate: `${(progressPercentage / 100) * 360}deg` }]
+                          }
+                        ]} />
+                      )}
+                    </View>
+                    
+                    <View style={styles.nutritionCircleContent}>
+                      <Text style={styles.nutritionCurrent}>{item.current}</Text>
+                      <Text style={styles.nutritionGoal}>/{item.goal}{item.unit}</Text>
+                    </View>
                   </View>
                   
-                  <View style={styles.nutritionCircleContent}>
-                    <Text style={styles.nutritionCurrent}>{item.current}</Text>
-                    <Text style={styles.nutritionGoal}>/{item.goal}{item.unit}</Text>
-                  </View>
+                  <Text style={styles.nutritionRemaining}>
+                    {item.remaining}{item.unit} left
+                  </Text>
                 </View>
-                
-                <Text style={styles.nutritionRemaining}>
-                  {item.remaining}{item.unit} left
-                </Text>
-              </View>
-            );
-          })}
+              );
+            })}
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderWeeklyChart = () => {
+    const chartData = {
+      labels: weeklyData.map(item => item.day.replace('週', '')),
+      datasets: [{
+        data: weeklyData.map(item => item.calories),
+        strokeWidth: 3,
+        color: (opacity = 1) => `rgba(0, 206, 209, ${opacity})`,
+      }]
+    };
+
+    return (
+      <View style={styles.chartContainer}>
+        <Text style={styles.chartTitle}>本週卡路里</Text>
+        <Text style={styles.chartSubtitle}>每日攝取趨勢</Text>
+        
+        <View style={styles.weeklyChartContent}>
+          <LineChart
+            data={chartData}
+            width={screenWidth - 60}
+            height={200}
+            chartConfig={{
+              backgroundColor: '#1C2526',
+              backgroundGradientFrom: '#1C2526',
+              backgroundGradientTo: '#1C2526',
+              decimalPlaces: 0,
+              color: (opacity = 1) => `rgba(0, 206, 209, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              style: {
+                borderRadius: 16
+              },
+              propsForDots: {
+                r: "6",
+                strokeWidth: "2",
+                stroke: "#00CED1"
+              }
+            }}
+            bezier
+            style={styles.lineChart}
+          />
+          
+          <View style={styles.weeklyStats}>
+            <Text style={styles.weeklyAverage}>
+              週平均: {Math.round(weeklyData.reduce((sum, item) => sum + item.calories, 0) / weeklyData.length)} 卡路里
+            </Text>
+          </View>
         </View>
       </View>
     );
@@ -440,28 +499,38 @@ export default function DietTrackingScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {renderCalorieSection()}
-        {renderNutritionSection()}
-        {renderChartIndicators()}
-        {renderActionButtons()}
-
-        <View style={styles.recordingSection}>
-          <Text style={styles.sectionTitle}>拍照記錄</Text>
-          
-          <View style={styles.recordingItems}>
-            <TouchableOpacity style={styles.recordingItem}>
-              <Ionicons name="scale-outline" size={24} color="#4ECDC4" />
-              <Text style={styles.recordingItemText}>體重</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.recordingItem}>
-              <Ionicons name="fitness-outline" size={24} color="#FF8C00" />
-              <Text style={styles.recordingItemText}>運動</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+      <ScrollView 
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={onChartScroll}
+        scrollEventThrottle={16}
+        style={styles.chartsScrollView}
+      >
+        {renderCalorieChart()}
+        {renderNutritionChart()}
+        {renderWeeklyChart()}
       </ScrollView>
+
+      {renderChartIndicators()}
+      {renderActionButtons()}
+
+      <View style={styles.recordingSection}>
+        <Text style={styles.sectionTitle}>拍照記錄</Text>
+        
+        <View style={styles.recordingItems}>
+          <TouchableOpacity style={styles.recordingItem}>
+            <Ionicons name="scale-outline" size={24} color="#4ECDC4" />
+            <Text style={styles.recordingItemText}>體重</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.recordingItem}>
+            <Ionicons name="fitness-outline" size={24} color="#FF8C00" />
+            <Text style={styles.recordingItemText}>運動</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {renderMealSelectionModal()}
       {renderFoodSelectionModal()}
@@ -497,50 +566,51 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  scrollView: {
-    flex: 1,
+  chartsScrollView: {
+    height: 350,
   },
-  calorieSection: {
+  chartContainer: {
+    width: screenWidth,
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
-  mainTitle: {
+  chartTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 5,
   },
-  subtitle: {
+  chartSubtitle: {
     fontSize: 14,
     color: '#7A8B8D',
     textAlign: 'center',
     marginBottom: 25,
   },
-  calorieContent: {
+  calorieChartContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   circularChart: {
-    width: 140,
-    height: 140,
+    width: 150,
+    height: 150,
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
   },
   progressRing: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
     borderWidth: 8,
     borderColor: '#2C3E50',
     position: 'absolute',
   },
   progressFill: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
     borderWidth: 8,
     borderColor: 'transparent',
     borderTopColor: '#00CED1',
@@ -549,42 +619,46 @@ const styles = StyleSheet.create({
   centerContent: {
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   remainingCalories: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
   remainingLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#7A8B8D',
+    marginTop: 2,
   },
   statsColumn: {
     flex: 1,
-    paddingLeft: 30,
+    paddingLeft: 20,
   },
   statRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 12,
   },
   statLabel: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#FFFFFF',
-    marginLeft: 10,
+    marginLeft: 8,
     flex: 1,
   },
   statValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
   nutritionSection: {
     backgroundColor: '#1C2526',
-    marginHorizontal: 20,
-    marginVertical: 10,
     borderRadius: 15,
-    paddingVertical: 25,
+    paddingVertical: 30,
     paddingHorizontal: 20,
     borderWidth: 1,
     borderColor: '#2C3E50',
@@ -631,6 +705,11 @@ const styles = StyleSheet.create({
   nutritionCircleContent: {
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   nutritionCurrent: {
     fontSize: 18,
@@ -645,6 +724,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#7A8B8D',
     textAlign: 'center',
+  },
+  weeklyChartContent: {
+    alignItems: 'center',
+  },
+  lineChart: {
+    borderRadius: 16,
+    marginVertical: 10,
+  },
+  weeklyStats: {
+    marginTop: 15,
+    alignItems: 'center',
+  },
+  weeklyAverage: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   chartIndicators: {
     flexDirection: 'row',
