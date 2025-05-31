@@ -195,11 +195,9 @@ export default function DietTrackingScreen({ navigation }) {
         
         <View style={styles.calorieContent}>
           <View style={styles.circularChart}>
-            <View style={[styles.progressRing, { 
-              borderColor: progress > 0.8 ? '#FF6B6B' : '#00CED1',
-            }]}>
+            <View style={styles.progressRing}>
               <View style={[styles.progressFill, {
-                borderColor: progress > 0.8 ? '#FF6B6B' : '#00CED1',
+                borderTopColor: progress > 0.8 ? '#FF6B6B' : '#00CED1',
                 transform: [{ rotate: `${Math.min(progress * 360, 360)}deg` }]
               }]} />
             </View>
@@ -267,7 +265,7 @@ export default function DietTrackingScreen({ navigation }) {
       <View style={styles.nutritionSection}>
         <View style={styles.nutritionGrid}>
           {nutritionData.map((item, index) => {
-            const progressPercentage = Math.min((item.current / item.goal) * 100, 100);
+            const progressPercentage = item.goal > 0 ? Math.min((item.current / item.goal) * 100, 100) : 0;
             
             return (
               <View key={index} style={styles.nutritionItem}>
@@ -277,13 +275,15 @@ export default function DietTrackingScreen({ navigation }) {
                 
                 <View style={styles.nutritionCircleContainer}>
                   <View style={styles.nutritionCircleBackground}>
-                    <View style={[
-                      styles.nutritionCircleProgress,
-                      {
-                        borderColor: item.color,
-                        transform: [{ rotate: `${(progressPercentage / 100) * 360}deg` }]
-                      }
-                    ]} />
+                    {progressPercentage > 0 && (
+                      <View style={[
+                        styles.nutritionCircleProgress,
+                        {
+                          borderTopColor: item.color,
+                          transform: [{ rotate: `${(progressPercentage / 100) * 360}deg` }]
+                        }
+                      ]} />
+                    )}
                   </View>
                   
                   <View style={styles.nutritionCircleContent}>
@@ -580,12 +580,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   nutritionSection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1C2526',
     marginHorizontal: 20,
     marginVertical: 10,
     borderRadius: 15,
     paddingVertical: 25,
     paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: '#2C3E50',
   },
   nutritionGrid: {
     flexDirection: 'row',
@@ -614,7 +616,7 @@ const styles = StyleSheet.create({
     height: 70,
     borderRadius: 35,
     borderWidth: 6,
-    borderColor: '#E5E5E5',
+    borderColor: '#3C4E50',
     position: 'absolute',
   },
   nutritionCircleProgress: {
@@ -633,7 +635,7 @@ const styles = StyleSheet.create({
   nutritionCurrent: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#FFFFFF',
   },
   nutritionGoal: {
     fontSize: 12,
