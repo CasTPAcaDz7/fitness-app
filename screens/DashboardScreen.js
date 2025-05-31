@@ -32,17 +32,19 @@ export default function DashboardScreen({ navigation }) {
       // 模擬數據載入
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // 生成本週日期
+      // 生成本週日期 - 從週日開始
       const today = new Date();
       const startOfWeek = new Date(today);
       startOfWeek.setDate(today.getDate() - today.getDay());
       
       const week = [];
+      const dayLabels = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+      
       for (let i = 0; i < 7; i++) {
         const date = new Date(startOfWeek);
         date.setDate(startOfWeek.getDate() + i);
         week.push({
-          day: ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][i],
+          day: dayLabels[i],
           date: date.getDate(),
           isToday: date.toDateString() === today.toDateString(),
           fullDate: date,
@@ -118,7 +120,9 @@ export default function DashboardScreen({ navigation }) {
                 styles.dayContainer,
                 day.isToday && styles.todayContainer,
               ]}
-              onPress={() => navigation.navigate('Calendar')}
+              onPress={() => navigation.navigate('Calendar', { 
+                selectedDate: day.fullDate.toISOString().split('T')[0] 
+              })}
               activeOpacity={0.7}
             >
               <Text style={[
@@ -144,30 +148,32 @@ export default function DashboardScreen({ navigation }) {
     <View style={styles.card}>
       <Text style={styles.sectionTitle}>Today Workouts</Text>
       <View style={styles.tableHeader}>
-        <Text style={[styles.tableHeaderText, { flex: 2 }]}>Training</Text>
+        <Text style={[styles.tableHeaderText, { flex: 2, textAlign: 'left' }]}>Training</Text>
         <Text style={[styles.tableHeaderText, { flex: 1 }]}>Weight</Text>
         <Text style={[styles.tableHeaderText, { flex: 1 }]}>No. of Set</Text>
         <Text style={[styles.tableHeaderText, { flex: 1 }]}>No. of Reps</Text>
-        <Text style={[styles.tableHeaderText, { flex: 1 }]}></Text>
+        <View style={{ flex: 1 }}></View>
       </View>
       {todayWorkouts.map((workout) => (
         <View key={workout.id} style={styles.tableRow}>
-          <Text style={[styles.tableCell, { flex: 2 }]}>{workout.training}</Text>
+          <Text style={[styles.tableCell, { flex: 2, textAlign: 'left' }]}>{workout.training}</Text>
           <Text style={[styles.tableCell, { flex: 1 }]}>{workout.weight}</Text>
           <Text style={[styles.tableCell, { flex: 1 }]}>{workout.sets}</Text>
           <Text style={[styles.tableCell, { flex: 1 }]}>{workout.reps}</Text>
-          <TouchableOpacity
-            style={[
-              styles.doneButton,
-              workout.completed && styles.completedButton,
-            ]}
-            onPress={() => !workout.completed && markWorkoutComplete(workout.id)}
-            disabled={workout.completed}
-          >
-            <Text style={styles.doneButtonText}>
-              {workout.completed ? 'COMPLETED' : 'DONE'}
-            </Text>
-          </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <TouchableOpacity
+              style={[
+                styles.doneButton,
+                workout.completed && styles.completedButton,
+              ]}
+              onPress={() => !workout.completed && markWorkoutComplete(workout.id)}
+              disabled={workout.completed}
+            >
+              <Text style={styles.doneButtonText}>
+                {workout.completed ? 'COMPLETED' : 'DONE'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       ))}
     </View>
@@ -175,14 +181,18 @@ export default function DashboardScreen({ navigation }) {
 
   const renderSimpleCharts = () => (
     <View style={styles.chartsContainer}>
-      <View style={styles.chartCard}>
+      <TouchableOpacity 
+        style={styles.chartCard}
+        onPress={() => navigation.navigate('DietTracking')}
+        activeOpacity={0.8}
+      >
         <Text style={styles.chartTitle}>Diet Progress</Text>
         <View style={styles.simpleChart}>
           <MaterialCommunityIcons name="chart-line" size={60} color="#00CED1" />
           <Text style={styles.chartValue}>31 kcal</Text>
           <Text style={styles.chartSubtext}>Today's intake</Text>
         </View>
-      </View>
+      </TouchableOpacity>
       
       <View style={styles.chartCard}>
         <Text style={styles.chartTitle}>Weight Progress</Text>
@@ -292,32 +302,48 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     alignItems: 'flex-start',
-    paddingTop: 10,
+    paddingTop: 0,
   },
   dayContainer: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 2,
     borderRadius: 8,
     marginHorizontal: 2,
-    height: 80,
+    height: 85,
     justifyContent: 'flex-start',
+    paddingTop: 2,
   },
   todayContainer: {
     backgroundColor: '#ffffff',
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginHorizontal: 1,
+    elevation: 3,
+    shadowColor: '#00CED1',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    paddingTop: 6,
+    paddingBottom: 12,
   },
   dayLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#ffffff',
     fontWeight: '500',
+    marginBottom: 1,
   },
   dateLabel: {
-    fontSize: 12,
+    fontSize: 16,
     color: '#ffffff',
-    marginTop: 2,
+    fontWeight: '600',
   },
   todayText: {
     color: '#000000',
+    fontWeight: 'bold',
   },
   
   // Workout Table Styles
@@ -348,8 +374,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    flex: 1,
-    marginLeft: 8,
+    minWidth: 80,
   },
   completedButton: {
     backgroundColor: '#4CAF50',
@@ -430,16 +455,17 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   bottomContent: {
-    marginVertical: 10,
+    marginVertical: 0,
   },
   weeklyCalendarCard: {
     backgroundColor: '#2E3A3B',
     borderRadius: 10,
     padding: 15,
-    marginVertical: 10,
+    marginVertical: 0,
+    marginBottom: 5,
     height: 120,
   },
   spacer: {
-    height: 10,
+    height: 0,
   },
 }); 
